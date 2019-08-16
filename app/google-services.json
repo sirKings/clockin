@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "689448636741",
+    "firebase_url": "https://clockin-18401.firebaseio.com",
+    "project_id": "clockin-18401",
+    "storage_bucket": "clockin-18401.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:689448636741:android:57f0560b92930f2f",
+        "android_client_info": {
+          "package_name": "com.agromall.clockin"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "689448636741-j4setfovt50i78v2qas3lc89eel468on.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD6KXEKkMsBkhkD54JGaQ3kT55cuWl8OQk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "689448636741-j4setfovt50i78v2qas3lc89eel468on.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
