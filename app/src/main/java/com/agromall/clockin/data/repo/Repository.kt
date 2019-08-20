@@ -1,10 +1,7 @@
 package com.agromall.clockin.data.repo
 
 import androidx.lifecycle.LiveData
-import com.agromall.clockin.data.dto.Attendance
-import com.agromall.clockin.data.dto.FingerprintsModel
-import com.agromall.clockin.data.dto.LoginRequest
-import com.agromall.clockin.data.dto.Staff
+import com.agromall.clockin.data.dto.*
 import com.agromall.clockin.data.source.DataSource
 import com.agromall.clockin.data.source.local.AppDatabase
 import okhttp3.MultipartBody
@@ -55,6 +52,9 @@ class Repository(
     ) = dataSource.postStaff(image,fpl,lName,fName,email, dept, id)
 
     fun getStaffs() = dataSource.getStaffs()
+    fun postAttendance(at: AttendancePost) = dataSource.postAttendance(at)
+
+    fun updateAttendance(at: AttendancePost) = dataSource.updateAttendance(at)
 
     fun getAllFP() = local.getDao().getAllFP()
 

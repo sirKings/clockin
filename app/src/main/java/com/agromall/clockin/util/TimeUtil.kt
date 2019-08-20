@@ -26,6 +26,11 @@ class TimeUtil {
         return formatter.format(time)
     }
 
+    fun getTimeForServer(time: Long): String{
+        val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.UK)
+        return format.format(time)
+    }
+
     fun getTimeDif(timeIn: Long, timeOut: Long): String{
         val difference = timeOut - timeIn
 

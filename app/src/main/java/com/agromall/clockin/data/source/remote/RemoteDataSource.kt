@@ -1,15 +1,23 @@
 package com.agromall.clockin.data.source.remote
 
-import com.agromall.clockin.data.dto.ListResponse
-import com.agromall.clockin.data.dto.LoginRequest
-import com.agromall.clockin.data.dto.SingleResponse
-import com.agromall.clockin.data.dto.StaffRes
+import com.agromall.clockin.data.dto.*
 import com.agromall.clockin.data.source.DataSource
+import io.reactivex.Observable
 import io.reactivex.Single
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import retrofit2.Response
 
 class RemoteDataSource(val apiService: ApiService) : DataSource {
+    override fun postAttendance(attendancePost: AttendancePost): Single<SingleResponse<AttPostRes>> {
+        return apiService.postAttendance(attendancePost)
+    }
+
+    override fun updateAttendance(attendancePost: AttendancePost): Single<SingleResponse<AttPostRes>> {
+        return apiService.updateAttendance(attendancePost)
+    }
+
+
     override fun getStaffs(): Single<ListResponse<StaffRes>> = apiService.getStaffs()
 
     override fun postStaff(

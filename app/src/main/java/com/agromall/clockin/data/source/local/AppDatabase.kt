@@ -10,13 +10,14 @@ import com.agromall.clockin.data.dto.Attendance
 import com.agromall.clockin.data.dto.FingerprintsModel
 import com.agromall.clockin.data.dto.Staff
 import com.agromall.clockin.data.source.local.AppDatabase.Companion.DB_VERSION
+import com.agromall.clockin.data.source.local.FingerprintDB.Companion.DB_NAME
 
 @Database(entities = [Staff::class, Attendance::class, FingerprintsModel::class], version = DB_VERSION, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun getDao(): StaffDao
 
     companion object {
-        const val DB_VERSION = 1
+        const val DB_VERSION = 2
         private const val DB_NAME = "clockin"
         @Volatile
         private var INSTANCE: AppDatabase? = null

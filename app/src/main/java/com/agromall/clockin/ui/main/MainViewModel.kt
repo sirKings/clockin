@@ -1,14 +1,29 @@
 package com.agromall.clockin.ui.main
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import com.agromall.clockin.data.dto.*
 import com.agromall.clockin.data.repo.Repository
 import com.agromall.clockin.util.AppSchedulers
 import com.agromall.clockin.util.EventWrapper
+import com.agromall.clockin.util.TimeUtil
+import com.google.android.gms.common.internal.ConnectionErrorMessages.getErrorMessage
+import com.google.gson.Gson
+import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
+import io.reactivex.functions.Consumer
+import okhttp3.ResponseBody
+import org.json.JSONObject
+import retrofit2.HttpException
+import java.io.*
+import java.net.HttpURLConnection
+import java.net.MalformedURLException
+import java.net.SocketTimeoutException
+import java.net.URL
 
 class MainViewModel(
     app: Application,
@@ -31,6 +46,7 @@ class MainViewModel(
     fun getAllFP() = repo.getAllFP()
 
     fun saveAttendance(attendance: Attendance){
+        postAttendance(attendance)
         return repo.saveAttendance(attendance)
     }
 
@@ -38,7 +54,50 @@ class MainViewModel(
         return repo.getAttendance(date,staffId)
     }
 
+    fun postAttendance(attendance: Attendance){
+        val att = AttendancePost(attendance.staffId!!.toInt(), TimeUtil().getTimeForServer(attendance.timeIn!!), null, null)
+        compositeDisposable.add(
+            repo.postAttendance(att)
+                .subscribeOn(schedulers.io())
+                .observeOn(schedulers.main())
+                .subscribe({
+                    Log.e("Status", it.result.id.toString())
+                    if(!it.status){
+                        val id = it.result.id
+                        updateAttendanceServer(id, att.staff_id)
+                    }
+                }, {
+
+                    Log.e("PatT", it.localizedMessage)
+                })
+
+        )
+
+    }
+
+
+    fun updateAttendanceServer(atId: Int, stId: Int){
+        val att = AttendancePost(stId, null, atId, TimeUtil().getTimeForServer(System.currentTimeMillis()))
+        compositeDisposable.add(
+            repo.updateAttendance(att)
+                .subscribeOn(schedulers.io())
+                .observeOn(schedulers.main())
+                .subscribe({
+                    Log.e("AUpdte", it.message)
+                    if(!it.status){
+                       // val id = it.results[0].id
+                       // updateAttendanceServer(id, att.staff_id)
+
+                    }
+                }, {
+                    Log.e("AUpdTe", it.message)
+                })
+
+        )
+    }
+
     fun updateAttendance(attendance: Attendance){
+
         return repo.updateAttendance(attendance)
     }
 
@@ -75,4 +134,5 @@ class MainViewModel(
 
     fun getSnackBarMessage(): LiveData<EventWrapper<String>> = snackBarMessage
     fun getIsLoading(): LiveData<EventWrapper<Boolean>> = isLoading
+
 }

@@ -29,6 +29,12 @@ interface ApiService {
 
     @GET("staff")
     fun getStaffs(): Single<ListResponse<StaffRes>>
+
+    @POST("attendance")
+    fun postAttendance(@Body att: AttendancePost): Single<SingleResponse<AttPostRes>>
+
+    @PUT("attendance")
+    fun updateAttendance(@Body att: AttendancePost): Single<SingleResponse<AttPostRes>>
 }
 
 

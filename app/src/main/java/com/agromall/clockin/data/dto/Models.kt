@@ -2,6 +2,7 @@ package com.agromall.clockin.data.dto
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.google.gson.annotations.SerializedName
 
 
 @Entity(tableName = "staffs")
@@ -53,6 +54,26 @@ data class StaffRes(
     var image_path: String,
     var status: String,
     var right_finger_print_path: String,
-    var left_finger_print_path: String
+    var left_finger_print_path: String,
+    var time_in: String?,
+    var time_out: String?
 )
+
+data class AttendancePost(
+    var staff_id: Int,
+    var time_in: String?,
+    var attendance_id: Int?,
+    var time_out: String?
+)
+
+data class AttPostRes(
+    var id: Int
+)
+
+data class AttResponse (
+    val message: String,
+    val status: Boolean,
+    val data: AttPostRes
+)
+
 

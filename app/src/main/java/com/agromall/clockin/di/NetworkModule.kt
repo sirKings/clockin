@@ -1,5 +1,6 @@
 package com.agromall.clockin.di
 
+import android.util.Log
 import com.agromall.clockin.data.source.remote.ApiService
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.Gson
@@ -65,7 +66,7 @@ internal fun provideGson(): Gson {
 }
 
 internal fun httpLoggingInterceptor(): HttpLoggingInterceptor {
-    val httpLoggingInterceptor = HttpLoggingInterceptor { message -> Timber.d(message) }
+    val httpLoggingInterceptor = HttpLoggingInterceptor { message -> Log.e("Http", message) }
     httpLoggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
     return httpLoggingInterceptor
 }

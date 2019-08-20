@@ -1,9 +1,11 @@
 package com.agromall.clockin.data.source
 
 import com.agromall.clockin.data.dto.*
+import io.reactivex.Observable
 import io.reactivex.Single
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import retrofit2.Response
 import retrofit2.http.Part
 
 interface DataSource {
@@ -20,4 +22,8 @@ interface DataSource {
     ): Single<SingleResponse<String>>
 
     fun getStaffs(): Single<ListResponse<StaffRes>>
+
+    fun postAttendance(attendancePost: AttendancePost): Single<SingleResponse<AttPostRes>>
+
+    fun updateAttendance(attendancePost: AttendancePost): Single<SingleResponse<AttPostRes>>
 }
