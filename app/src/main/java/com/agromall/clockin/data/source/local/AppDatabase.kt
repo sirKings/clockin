@@ -17,7 +17,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun getDao(): StaffDao
 
     companion object {
-        const val DB_VERSION = 2
+        const val DB_VERSION = 4
         private const val DB_NAME = "clockin"
         @Volatile
         private var INSTANCE: AppDatabase? = null

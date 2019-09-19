@@ -17,6 +17,7 @@ import io.reactivex.Observable
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.functions.Consumer
 import okhttp3.ResponseBody
+import org.jetbrains.anko.doAsync
 import org.json.JSONObject
 import retrofit2.HttpException
 import java.io.*
@@ -41,6 +42,8 @@ class MainViewModel(
         return repo.getStaff(id)
     }
 
+    fun getAllAttendance() = repo.getAllAttendance()
+
     fun getAllStaffs() = repo.getAllStaffs()
 
     fun getAllFP() = repo.getAllFP()
@@ -64,7 +67,14 @@ class MainViewModel(
                     Log.e("Status", it.result.id.toString())
                     if(!it.status){
                         val id = it.result.id
-                        updateAttendanceServer(id, att.staff_id)
+                        updateAttendanceServer(id, att.staff_id, attendance)
+
+                    }else{
+//                        attendance.serverStatus = true
+//                        doAsync {
+//                            repo.saveAttendance(attendance)
+//                        }
+
                     }
                 }, {
 
@@ -76,8 +86,17 @@ class MainViewModel(
     }
 
 
-    fun updateAttendanceServer(atId: Int, stId: Int){
-        val att = AttendancePost(stId, null, atId, TimeUtil().getTimeForServer(System.currentTimeMillis()))
+    fun updateAttendanceServer(atId: Int, stId: Int, attt: Attendance){
+
+        var timout = 0L
+        if(attt.timeOut != null){
+            timout = attt.timeOut!!
+        }else{
+            timout = System.currentTimeMillis()
+        }
+
+        val att = AttendancePost(stId, null, atId, TimeUtil().getTimeForServer(timout))
+
         compositeDisposable.add(
             repo.updateAttendance(att)
                 .subscribeOn(schedulers.io())
@@ -85,9 +104,12 @@ class MainViewModel(
                 .subscribe({
                     Log.e("AUpdte", it.message)
                     if(!it.status){
-                       // val id = it.results[0].id
-                       // updateAttendanceServer(id, att.staff_id)
 
+//                        attt.serverStatus = true
+//                        doAsync {
+//                            repo.saveAttendance(attt)
+//                        }
+                        Log.e("attend", attt.serverStatus.toString() + attt.staffId)
                     }
                 }, {
                     Log.e("AUpdTe", it.message)
@@ -103,14 +125,16 @@ class MainViewModel(
 
     fun getFp(id: Int) = repo.getFP(id)
 
+    fun getPendingAtt() = repo.getPendingAtt()
+
     fun savefingerprintId(id: Int, userId: String){
         val fp = FingerprintsModel(null, id,userId)
         repo.saveFP(fp)
     }
 
-    fun getStaffs(){
+    fun getStaffs(offset: Int){
         compositeDisposable.add(
-            repo.getStaffs()
+            repo.getStaffs(offset)
                 .subscribeOn(schedulers.io())
                 .observeOn(schedulers.main())
                 .doOnSubscribe { isLoading.postValue(EventWrapper(true)) }
@@ -122,7 +146,7 @@ class MainViewModel(
                     }
 
                 }, {
-                    snackBarMessage.value = EventWrapper(it.message)
+                    snackBarMessage.value = EventWrapper("An error occurred, try again later")
                 })
         )
 

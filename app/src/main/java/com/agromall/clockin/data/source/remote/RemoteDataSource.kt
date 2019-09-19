@@ -18,7 +18,7 @@ class RemoteDataSource(val apiService: ApiService) : DataSource {
     }
 
 
-    override fun getStaffs(): Single<ListResponse<StaffRes>> = apiService.getStaffs()
+    override fun getStaffs(offset: Int): Single<ListResponse<StaffRes>> = apiService.getStaffs(offset)
 
     override fun postStaff(
         image: MultipartBody.Part,

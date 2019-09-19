@@ -6,7 +6,6 @@ import androidx.room.*
 import com.agromall.clockin.data.dto.Attendance
 import com.agromall.clockin.data.dto.FingerprintsModel
 import com.agromall.clockin.data.dto.Staff
-import io.reactivex.Single
 
 @Dao
 interface StaffDao {
@@ -43,5 +42,8 @@ interface StaffDao {
 
     @Query("SELECT * FROM fingerDB WHERE fpId = :id")
     fun getFPInfo(id: Int): LiveData<FingerprintsModel>
+
+    @Query("SELECT * FROM attendance WHERE serverStatus = 0")
+    fun getAllPendingAttendance(): LiveData<List<Attendance>>
 
 }

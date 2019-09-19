@@ -21,7 +21,7 @@ interface DataSource {
                   id: RequestBody?
     ): Single<SingleResponse<String>>
 
-    fun getStaffs(): Single<ListResponse<StaffRes>>
+    fun getStaffs(offset: Int): Single<ListResponse<StaffRes>>
 
     fun postAttendance(attendancePost: AttendancePost): Single<SingleResponse<AttPostRes>>
 

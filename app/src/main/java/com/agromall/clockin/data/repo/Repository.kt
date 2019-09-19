@@ -51,12 +51,14 @@ class Repository(
         id: RequestBody?
     ) = dataSource.postStaff(image,fpl,lName,fName,email, dept, id)
 
-    fun getStaffs() = dataSource.getStaffs()
+    fun getStaffs(offset: Int) = dataSource.getStaffs(offset)
     fun postAttendance(at: AttendancePost) = dataSource.postAttendance(at)
 
     fun updateAttendance(at: AttendancePost) = dataSource.updateAttendance(at)
 
     fun getAllFP() = local.getDao().getAllFP()
+
+    fun getPendingAtt() = local.getDao().getAllPendingAttendance()
 
 
 }

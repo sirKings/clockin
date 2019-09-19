@@ -28,7 +28,8 @@ data class Attendance (
     var staffId: String?,
     var timeIn: Long?,
     var timeOut: Long?,
-    var date: Long?
+    var date: Long?,
+    var serverStatus: Boolean
 )
 
 data class LoginRequest(
@@ -64,6 +65,7 @@ data class AttendancePost(
     var time_in: String?,
     var attendance_id: Int?,
     var time_out: String?
+
 )
 
 data class AttPostRes(

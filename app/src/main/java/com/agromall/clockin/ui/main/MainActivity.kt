@@ -19,10 +19,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import android.view.Menu
-import android.view.MenuItem
 import androidx.appcompat.app.AlertDialog
-import com.agromall.clockin.R
 import com.google.android.material.snackbar.Snackbar
 import com.agromall.clockin.data.dto.StaffRes
 import com.agromall.clockin.util.ImageUtil
@@ -31,6 +28,13 @@ import org.jetbrains.anko.onComplete
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.net.URL
+import android.content.res.Configuration
+import com.agromall.clockin.R
+import io.reactivex.internal.util.HalfSerializer.onComplete
+import kotlinx.android.synthetic.main.clockin_layout.view.closeBtn
+import kotlinx.android.synthetic.main.clockin_layout.view.greeting
+import kotlinx.android.synthetic.main.clockin_layout.view.imageView5
+import kotlinx.android.synthetic.main.menu_list.view.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -48,11 +52,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(com.agromall.clockin.R.layout.activity_main)
 
-
-
-        heading.visibility = View.GONE
+        supportActionBar?.hide()
 
         retryBtn.visibility = View.GONE
         progress.visibility = View.GONE
@@ -70,21 +72,17 @@ class MainActivity : AppCompatActivity() {
 
         bcakBtn.visibility = View.GONE
 
+        //FingerprintUtil(this).create().clearFingerDB()
+
         vModel.staffsRes.observe(this, Observer {
             val staffList = ArrayList<StaffRes>()
-            val latestId = getSharedPreferences("agromall.clockin", 0).getInt("latestId", 0)
+
             it.forEach {
                 progress.visibility = View.VISIBLE
                 Log.e("items", it.first_name)
-                if(it.id < latestId){
-
-                }else{
-                    staffList.add(it)
-                }
+                staffList.add(it)
                 //saveStaffLocally(it)
             }
-
-            Log.e("latestId res", latestId.toString())
 
             saveStaffLocally(staffList)
         })
@@ -100,7 +98,8 @@ class MainActivity : AppCompatActivity() {
 
         vModel.getSnackBarMessage().observe(this, Observer {
             if (it?.getContentIfNotHandled() != null){
-                Snackbar.make(myView, "${it.peekContent()}", Snackbar.LENGTH_LONG).show()
+                //Snackbar.make(myView, "${it.peekContent()}", Snackbar.LENGTH_LONG).show()
+                showSyncComplete(false)
             }
         })
 
@@ -122,30 +121,39 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-    }
-
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menu.add(Menu.NONE, 1, Menu.NONE, "Sync")
-        menu.add(Menu.NONE, 2, Menu.NONE, "Close")
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when (item.getItemId()) {
-            1 -> {
-                loadUsers()
-                return true
+        vModel.getAllAttendance().observe(this, Observer{
+            it.forEach {
+                Log.e("attendance", "hello "+it.staffId+" "+it.id+ " "+it.serverStatus)
             }
-            2 -> {
-                finish()
-                return true
-            }
-            else -> return false
+        })
+
+        menuBtn.setOnClickListener {
+            closeScanner()
+            isUpdate = true
+            loadUsers()
         }
+
     }
 
     fun loadUsers(){
-        vModel.getStaffs()
+        val latestId = getSharedPreferences("com.agromall.clockin", 0).getInt("latestId", 0)
+        vModel.getStaffs(latestId)
+//        vModel.getPendingAtt().observe(this, Observer {
+//            try {
+//                it.forEach{
+//                    doAsync {
+//                        vModel.postAttendance(it)
+//                        Log.e("attendance", "hello"+it.serverStatus)
+//                    }
+//                }
+//
+//            }catch (e: Exception){
+//                e.printStackTrace()
+//            }
+//
+//        })
+
+
     }
 
     override fun onStart() {
@@ -213,7 +221,17 @@ class MainActivity : AppCompatActivity() {
         scanner?.open()
         scanner?.prepare()
         Bione.initialize(this@MainActivity, FP_DB_PATH)
+        myView.rotation = 180f
         //setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT)
+    }
+
+    private fun closeScanner(){
+        scanner?.close()
+        scanner?.powerOff()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        //if(newConfig.orientation == Configuration.)
     }
 
     fun checkFingerPrint(result: FingerprintImage): Boolean{
@@ -255,7 +273,7 @@ class MainActivity : AppCompatActivity() {
                                 if (it == null){
                                     infoText.text = "Staff not found"
                                     retryBtn.visibility = View.VISIBLE
-                                    imageView8.setImageDrawable(resources.getDrawable(R.drawable.ic_fingerprint_gray))
+                                    imageView8.setImageDrawable(resources.getDrawable(com.agromall.clockin.R.drawable.ic_fingerprint_gray))
                                 }else{
                                     if(!isUpdate){
                                         setupUser(it)
@@ -266,13 +284,13 @@ class MainActivity : AppCompatActivity() {
                         }else{
                             infoText.text = "Staff not found"
                             retryBtn.visibility = View.VISIBLE
-                            imageView8.setImageDrawable(resources.getDrawable(R.drawable.ic_fingerprint_gray))
+                            imageView8.setImageDrawable(resources.getDrawable(com.agromall.clockin.R.drawable.ic_fingerprint_gray))
                         }
                     })
                 }else{
                     infoText.text = "This staff does not exist"
                     retryBtn.visibility = View.VISIBLE
-                    imageView8.setImageDrawable(resources.getDrawable(R.drawable.ic_fingerprint_gray))
+                    imageView8.setImageDrawable(resources.getDrawable(com.agromall.clockin.R.drawable.ic_fingerprint_gray))
                 }
             }
         }
@@ -283,7 +301,7 @@ class MainActivity : AppCompatActivity() {
 
         user_profile_name.text = "${staff.firstName}  ${staff.lastName}"
         user_profile_dept.text = "${staff.department}"
-        imageView8.setImageDrawable(resources.getDrawable(R.drawable.ic_fingerpirnt_green))
+        imageView8.setImageDrawable(resources.getDrawable(com.agromall.clockin.R.drawable.ic_fingerpirnt_green))
 
         saveAttendance(staff.id, staff)
 
@@ -294,7 +312,7 @@ class MainActivity : AppCompatActivity() {
 
             if(!isUpdate){
                 if(it ==  null){
-                    val att = Attendance(null, id, System.currentTimeMillis(), null, TimeUtil().getDateInMilliseconds())
+                    val att = Attendance(null, id, System.currentTimeMillis(), null, TimeUtil().getDateInMilliseconds(), false)
                     doAsync {
 
                         vModel.saveAttendance(att)
@@ -306,7 +324,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }else if ( it.timeOut == null){
                     it.timeOut = System.currentTimeMillis()
-
+                    it.serverStatus = false
 
                     doAsync {
                         vModel.saveAttendance(it)
@@ -328,7 +346,7 @@ class MainActivity : AppCompatActivity() {
     fun showInfo(greeting: String, info: String, imgUrl: String){
 
         val builder = AlertDialog.Builder(this)
-        val customLayout = layoutInflater.inflate(R.layout.clockin_layout, null)
+        val customLayout = layoutInflater.inflate(com.agromall.clockin.R.layout.clockin_layout, null)
         builder.setView(customLayout)
         val dialog = builder.create()
 
@@ -345,11 +363,12 @@ class MainActivity : AppCompatActivity() {
             user_profile_dept.text = ""
             //retryBtn.visibility = View.VISIBLE
             isUpdate = false
-            imageView8.setImageDrawable(resources.getDrawable(R.drawable.ic_fingerprint_gray))
+            imageView8.setImageDrawable(resources.getDrawable(com.agromall.clockin.R.drawable.ic_fingerprint_gray))
             setUpScanner()
         }
 
         dialog.setCancelable(false)
+        customLayout.rotation = 180f
         dialog.show()
         dialog.window?.setBackgroundDrawable(ColorDrawable(resources.getColor(android.R.color.transparent)))
 
@@ -397,18 +416,48 @@ class MainActivity : AppCompatActivity() {
                 vModel.saveStaff(staff)
             }
             onComplete {
-                getSharedPreferences("agromall.clockin", 0).edit().putInt("latestId",latestId).apply()
+                getSharedPreferences("com.agromall.clockin", 0).edit().putInt("latestId",latestId).apply()
                 Log.e("latestId in", latestId.toString())
-                Snackbar.make(myView, "Sync completed", Snackbar.LENGTH_LONG).show()
+                showSyncComplete(true)
+                setUpScanner()
                 progress.visibility = View.GONE
             }
         }
 
     }
 
+    private fun showSyncComplete(status: Boolean){
+        val builder = AlertDialog.Builder(this)
+        val customLayout = layoutInflater.inflate(R.layout.menu_list, null)
+        builder.setView(customLayout)
+        val dialog = builder.create()
+
+        if(!status){
+            customLayout.greeting.text = "Sync failed, check network connection"
+            customLayout.imageView5.setImageDrawable(resources.getDrawable(R.drawable.ic_error))
+        }else{
+            customLayout.greeting.text = "Sync completed"
+            customLayout.imageView5.setImageDrawable(resources.getDrawable(R.drawable.ic_checked))
+        }
+
+
+        customLayout.closeBtn.setOnClickListener {
+            dialog.dismiss()
+            isUpdate = false
+        }
+
+        dialog.setCancelable(false)
+        customLayout.rotation = 180f
+        dialog.show()
+
+        dialog.window?.setBackgroundDrawable(ColorDrawable(resources.getColor(android.R.color.transparent)))
+    }
+
     private  fun ResToStaff(st: StaffRes): Staff{
         val base_path ="https://s3-eu-west-1.amazonaws.com/agromall-storage/"
-         return Staff(st.id.toString(), st.staff_id, st.first_name, st.last_name, st.department, "$base_path${st.image_path}",st.status,"", "", "$base_path${st.right_finger_print_path}", "$base_path${st.left_finger_print_path}")
+         //return Staff(st.id.toString(), st.staff_id, st.first_name, st.last_name, st.department, "$base_path${st.image_path}",st.status,"", "", "$base_path${st.right_finger_print_path}", "$base_path${st.left_finger_print_path}")
+        return Staff(st.id.toString(), st.staff_id, st.first_name, st.last_name, st.department, st.image_path,st.status,"", "", st.right_finger_print_path, st.left_finger_print_path)
+
     }
 
 
@@ -430,6 +479,7 @@ class MainActivity : AppCompatActivity() {
         if(isFP){
             val id = FingerprintUtil(this).create().registerUserByte(response)
             if(id != -1){
+
                 vModel.savefingerprintId(id,uid)
             }
         }else{
@@ -438,6 +488,7 @@ class MainActivity : AppCompatActivity() {
         }
 
     }
+
 
 
 }

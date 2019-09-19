@@ -28,7 +28,7 @@ interface ApiService {
                   @Part("id") id: RequestBody?): Single<SingleResponse<String>>
 
     @GET("staff")
-    fun getStaffs(): Single<ListResponse<StaffRes>>
+    fun getStaffs(@Query("offset") offset: Int): Single<ListResponse<StaffRes>>
 
     @POST("attendance")
     fun postAttendance(@Body att: AttendancePost): Single<SingleResponse<AttPostRes>>
