@@ -23,10 +23,10 @@ interface StaffDao {
     fun getAllFP(): LiveData<List<FingerprintsModel>>
 
     @Query("SELECT * FROM staffs WHERE staffId = :id")
-    fun getStaff(id: String): LiveData<Staff>
+    fun getStaff(id: String): Staff?
 
     @Query("SELECT * FROM attendance WHERE date = :date AND staffId = :staffId")
-    fun getAttendance(date: Long, staffId: String): LiveData<Attendance>
+    fun getAttendance(date: Long, staffId: String): Attendance?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun saveAttendance(attendance: Attendance)
@@ -41,9 +41,12 @@ interface StaffDao {
     fun savefingerPrint(fp: FingerprintsModel)
 
     @Query("SELECT * FROM fingerDB WHERE fpId = :id")
-    fun getFPInfo(id: Int): LiveData<FingerprintsModel>
+    fun getFPInfo(id: Int): FingerprintsModel?
 
     @Query("SELECT * FROM attendance WHERE serverStatus = 0")
-    fun getAllPendingAttendance(): LiveData<List<Attendance>>
+    fun getAllPendingAttendance(): List<Attendance>?
+
+    @Query("SELECT * FROM attendance")
+    fun getAttendanceForSync(): List<Attendance>
 
 }

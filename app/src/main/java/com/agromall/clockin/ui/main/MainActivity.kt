@@ -63,6 +63,7 @@ class MainActivity : AppCompatActivity() {
 
         retryBtn.setOnClickListener {
             setUpScanner()
+            infoText.setTextColor(resources.getColor(android.R.color.black))
             //verrifyPrint(2)
         }
 
@@ -130,7 +131,9 @@ class MainActivity : AppCompatActivity() {
         menuBtn.setOnClickListener {
             closeScanner()
             isUpdate = true
-            loadUsers()
+            doAsync {
+                loadUsers()
+            }
         }
 
     }
@@ -138,22 +141,10 @@ class MainActivity : AppCompatActivity() {
     fun loadUsers(){
         val latestId = getSharedPreferences("com.agromall.clockin", 0).getInt("latestId", 0)
         vModel.getStaffs(latestId)
-//        vModel.getPendingAtt().observe(this, Observer {
-//            try {
-//                it.forEach{
-//                    doAsync {
-//                        vModel.postAttendance(it)
-//                        Log.e("attendance", "hello"+it.serverStatus)
-//                    }
-//                }
-//
-//            }catch (e: Exception){
-//                e.printStackTrace()
-//            }
-//
-//        })
-
-
+        vModel.getPendingAtt()?.forEach{
+            vModel.postAttendance(it)
+            Log.e("attendance", "hello"+it.serverStatus)
+        }
     }
 
     override fun onStart() {
@@ -255,44 +246,44 @@ class MainActivity : AppCompatActivity() {
 
     private fun verrifyPrint(fi: FingerprintImage){
 
-//        //
         doAsync {
             val userId = FingerprintUtil(this@MainActivity)
                 .create()
                 .getUserId(fi)
 
             Log.e("id", userId.toString())
-            uiThread {
                 if(userId != -1){
+                    val fp = vModel.getFp(userId)
 
-                    vModel.getFp(userId).observe(this@MainActivity, Observer {
-                        Log.e("Watch", "Getting user fp")
-                        if(it != null){
-                            Log.e("Watch", "Found user fp${it.fpId}")
-                            vModel.loadStaff(it.userId!!).observe(this@MainActivity, Observer {
-                                if (it == null){
-                                    infoText.text = "Staff not found"
-                                    retryBtn.visibility = View.VISIBLE
-                                    imageView8.setImageDrawable(resources.getDrawable(com.agromall.clockin.R.drawable.ic_fingerprint_gray))
-                                }else{
-                                    if(!isUpdate){
-                                        setupUser(it)
+                        if(fp != null){
+                            val staff =  vModel.loadStaff(fp.userId!!)
+                            uiThread {
+                                    if (staff === null) {
+                                        infoText.text = "Staff not found"
+                                        retryBtn.visibility = View.VISIBLE
+                                        imageView8.setImageDrawable(resources.getDrawable(R.drawable.ic_fingerprint_gray))
+                                    } else {
+                                        if (!isUpdate) {
+                                            setupUser(staff)
+                                        }
+                                        retryBtn.visibility = View.GONE
                                     }
-                                    retryBtn.visibility = View.GONE
-                                }
-                            })
+                            }
                         }else{
-                            infoText.text = "Staff not found"
-                            retryBtn.visibility = View.VISIBLE
-                            imageView8.setImageDrawable(resources.getDrawable(com.agromall.clockin.R.drawable.ic_fingerprint_gray))
+                            uiThread {
+                                infoText.text = "Staff not found"
+                                retryBtn.visibility = View.VISIBLE
+                                imageView8.setImageDrawable(resources.getDrawable(com.agromall.clockin.R.drawable.ic_fingerprint_gray))
+                            }
                         }
-                    })
                 }else{
-                    infoText.text = "This staff does not exist"
-                    retryBtn.visibility = View.VISIBLE
-                    imageView8.setImageDrawable(resources.getDrawable(com.agromall.clockin.R.drawable.ic_fingerprint_gray))
+                    uiThread {
+                        infoText.text = "This staff does not exist"
+                        retryBtn.visibility = View.VISIBLE
+                        imageView8.setImageDrawable(resources.getDrawable(com.agromall.clockin.R.drawable.ic_fingerprint_gray))
+                    }
                 }
-            }
+
         }
 
     }
@@ -308,39 +299,68 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun saveAttendance(id: String, staff: Staff){
-        vModel.getAttendance(TimeUtil().getDateInMilliseconds(), id).observe(this, Observer {
+        doAsync {
 
-            if(!isUpdate){
-                if(it ==  null){
-                    val att = Attendance(null, id, System.currentTimeMillis(), null, TimeUtil().getDateInMilliseconds(), false)
-                    doAsync {
+            val attend = vModel.getAttendance(TimeUtil().getDateInMilliseconds(), id)
+
+            if (!isUpdate) {
+                if (attend == null) {
+                    val att = Attendance(
+                        null,
+                        id,
+                        System.currentTimeMillis(),
+                        null,
+                        TimeUtil().getDateInMilliseconds(),
+                        false
+                    )
+                    //doAsync {
 
                         vModel.saveAttendance(att)
                         //vModel.postAttendance(att)
                         isUpdate = true
                         uiThread {
-                            showInfo("Welcome ${staff.firstName}","Time in: ${TimeUtil().getTimeinString(att.timeIn!!)}", staff.staffId)
+                            showInfo(
+                                "Welcome ${staff.firstName}",
+                                "Time in: ${TimeUtil().getTimeinString(att.timeIn!!)}",
+                                staff.staffId
+                            )
                         }
-                    }
-                }else if ( it.timeOut == null){
-                    it.timeOut = System.currentTimeMillis()
-                    it.serverStatus = false
+                    //}
+                } else if (attend.timeOut == null) {
+                    attend.timeOut = System.currentTimeMillis()
+                    attend.serverStatus = false
 
-                    doAsync {
-                        vModel.saveAttendance(it)
+                    //doAsync {
+                        vModel.saveAttendance(attend)
                         //vModel.postAttendance(it)
                         isUpdate = true
-                        val at = it
+                        val at = attend
                         uiThread {
-                            showInfo( "Goodbye ${staff.firstName}","Time out: ${TimeUtil().getTimeinString(at.timeOut!!)}. Spent ${TimeUtil().getTimeDif(at.timeIn!!, at.timeOut!!)}", staff.staffId)
+                            showInfo(
+                                "Goodbye ${staff.firstName}",
+                                "Time out: ${TimeUtil().getTimeinString(at.timeOut!!)}. Spent ${TimeUtil().getTimeDif(
+                                    at.timeIn!!,
+                                    at.timeOut!!
+                                )}",
+                                staff.staffId
+                            )
                         }
-                    }
-                }else{
+                    //}
+                } else {
                     isUpdate = true
-                    showInfo(  "You have clocked out already today","Time out: ${TimeUtil().getTimeinString(it.timeOut!!)}. Spent ${TimeUtil().getTimeDif(it.timeIn!!, it.timeOut!!)}", staff.staffId)
+                    uiThread {
+                        showInfo(
+                            "You have clocked out already today",
+                            "Time out: ${TimeUtil().getTimeinString(attend.timeOut!!)}. Spent ${TimeUtil().getTimeDif(
+                                attend.timeIn!!,
+                                attend.timeOut!!
+                            )}",
+                            staff.staffId
+                        )
+                    }
                 }
             }
-        })
+        }
     }
 
     fun showInfo(greeting: String, info: String, imgUrl: String){
@@ -358,6 +378,7 @@ class MainActivity : AppCompatActivity() {
         customLayout.closeBtn.setOnClickListener {
             dialog.dismiss()
             infoText.text = "Place your finger on the scanner"
+            infoText.setTextColor(resources.getColor(android.R.color.black))
             //user_image.setImageDrawable(null)
             user_profile_name.text = ""
             user_profile_dept.text = ""
@@ -374,33 +395,6 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun updateAttendance(id: String){
-        var isUpdate = false
-        vModel.getAttendance(TimeUtil().getDateInMilliseconds(), id).observe(this, Observer {
-            if(!isUpdate){
-                if(it != null){
-                    if(it.timeOut == null){
-                        it.timeOut = System.currentTimeMillis()
-                        doAsync {
-                            vModel.saveAttendance(it)
-                            isUpdate = true
-                            val at = it
-                            uiThread {
-                                timeInfo.text = "Time out: ${TimeUtil().getTimeinString(at.timeOut!!)}. Spent ${TimeUtil().getTimeDif(at.timeIn!!, at.timeOut!!)}"
-                                timeInfo.visibility = View.VISIBLE
-                            }
-                        }
-                    }else{
-                        infoText.text = "You have clocked out already today"
-                        timeInfo.text = "Time out: ${TimeUtil().getTimeinString(it.timeOut!!)}. Spent ${TimeUtil().getTimeDif(it.timeIn!!, it.timeOut!!)}"
-                        timeInfo.visibility = View.VISIBLE
-                    }
-                }else{
-                    infoText.text = "This staff has not clocked in today. Please clock in first"
-                }
-            }
-        })
-    }
 
     private fun saveStaffLocally(st: ArrayList<StaffRes>){
         var latestId = 0

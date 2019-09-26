@@ -38,9 +38,7 @@ class MainViewModel(
 
     val staffsRes: MutableLiveData<MutableList<StaffRes>> = MutableLiveData()
 
-    fun loadStaff(id: String) : LiveData<Staff> {
-        return repo.getStaff(id)
-    }
+    fun loadStaff(id: String) = repo.getStaff(id)
 
     fun getAllAttendance() = repo.getAllAttendance()
 
@@ -53,9 +51,7 @@ class MainViewModel(
         return repo.saveAttendance(attendance)
     }
 
-    fun getAttendance(date: Long, staffId: String): LiveData<Attendance> {
-        return repo.getAttendance(date,staffId)
-    }
+    fun getAttendance(date: Long, staffId: String) = repo.getAttendance(date,staffId)
 
     fun postAttendance(attendance: Attendance){
         val att = AttendancePost(attendance.staffId!!.toInt(), TimeUtil().getTimeForServer(attendance.timeIn!!), null, null)
@@ -70,10 +66,10 @@ class MainViewModel(
                         updateAttendanceServer(id, att.staff_id, attendance)
 
                     }else{
-//                        attendance.serverStatus = true
-//                        doAsync {
-//                            repo.saveAttendance(attendance)
-//                        }
+                        attendance.serverStatus = true
+                        doAsync {
+                            repo.saveAttendance(attendance)
+                        }
 
                     }
                 }, {
@@ -103,12 +99,12 @@ class MainViewModel(
                 .observeOn(schedulers.main())
                 .subscribe({
                     Log.e("AUpdte", it.message)
-                    if(!it.status){
+                    if(it.status){
 
-//                        attt.serverStatus = true
-//                        doAsync {
-//                            repo.saveAttendance(attt)
-//                        }
+                        attt.serverStatus = true
+                        doAsync {
+                            repo.saveAttendance(attt)
+                        }
                         Log.e("attend", attt.serverStatus.toString() + attt.staffId)
                     }
                 }, {

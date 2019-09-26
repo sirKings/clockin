@@ -16,13 +16,11 @@ class Repository(
 
     fun getDepts() = dataSource.getDepartment()
 
-    fun getStaff(id: String): LiveData<Staff>{
-        return local.getDao().getStaff(id)
-    }
+    fun getStaff(id: String) = local.getDao().getStaff(id)
 
     fun saveStaff(staff: Staff): Staff?{
         local.getDao().insert(staff)
-        return local.getDao().getStaff(staff.id).value
+        return local.getDao().getStaff(staff.id)
     }
 
     fun login(request: LoginRequest) = dataSource.login(request)
