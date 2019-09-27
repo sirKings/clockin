@@ -85,33 +85,31 @@ class MainViewModel(
     fun updateAttendanceServer(atId: Int, stId: Int, attt: Attendance){
 
         var timout = 0L
-        if(attt.timeOut != null){
+        if(attt.timeOut != null) {
             timout = attt.timeOut!!
-        }else{
-            timout = System.currentTimeMillis()
-        }
 
-        val att = AttendancePost(stId, null, atId, TimeUtil().getTimeForServer(timout))
+            val att = AttendancePost(stId, null, atId, TimeUtil().getTimeForServer(timout))
 
-        compositeDisposable.add(
-            repo.updateAttendance(att)
-                .subscribeOn(schedulers.io())
-                .observeOn(schedulers.main())
-                .subscribe({
-                    Log.e("AUpdte", it.message)
-                    if(it.status){
+            compositeDisposable.add(
+                repo.updateAttendance(att)
+                    .subscribeOn(schedulers.io())
+                    .observeOn(schedulers.main())
+                    .subscribe({
+                        Log.e("AUpdte", it.message)
+                        if (it.status) {
 
-                        attt.serverStatus = true
-                        doAsync {
-                            repo.saveAttendance(attt)
+                            attt.serverStatus = true
+                            doAsync {
+                                repo.saveAttendance(attt)
+                            }
+                            Log.e("attend", attt.serverStatus.toString() + attt.staffId)
                         }
-                        Log.e("attend", attt.serverStatus.toString() + attt.staffId)
-                    }
-                }, {
-                    Log.e("AUpdTe", it.message)
-                })
+                    }, {
+                        Log.e("AUpdTe", it.message)
+                    })
 
-        )
+            )
+        }
     }
 
     fun updateAttendance(attendance: Attendance){
