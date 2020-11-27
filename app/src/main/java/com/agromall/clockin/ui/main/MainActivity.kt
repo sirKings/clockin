@@ -13,8 +13,6 @@ import cn.com.aratek.fp.FingerprintScanner
 import cn.com.aratek.util.Result
 import com.agromall.clockin.data.dto.Attendance
 import com.agromall.clockin.data.dto.Staff
-import com.agromall.clockin.util.FingerprintUtil
-import com.agromall.clockin.util.TimeUtil
 import kotlinx.android.synthetic.main.activity_main.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
@@ -22,19 +20,25 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.snackbar.Snackbar
 import com.agromall.clockin.data.dto.StaffRes
-import com.agromall.clockin.util.ImageUtil
 import kotlinx.android.synthetic.main.clockin_layout.view.*
 import org.jetbrains.anko.onComplete
 import java.io.BufferedInputStream
 import java.io.ByteArrayOutputStream
 import java.net.URL
 import android.content.res.Configuration
+import android.widget.Toast
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
 import com.agromall.clockin.R
+import com.agromall.clockin.util.*
 import io.reactivex.internal.util.HalfSerializer.onComplete
 import kotlinx.android.synthetic.main.clockin_layout.view.closeBtn
 import kotlinx.android.synthetic.main.clockin_layout.view.greeting
 import kotlinx.android.synthetic.main.clockin_layout.view.imageView5
 import kotlinx.android.synthetic.main.menu_list.view.*
+import java.util.concurrent.TimeUnit
 
 
 class MainActivity : AppCompatActivity() {
@@ -64,7 +68,7 @@ class MainActivity : AppCompatActivity() {
         retryBtn.setOnClickListener {
             setUpScanner()
             infoText.setTextColor(resources.getColor(android.R.color.black))
-            //verrifyPrint(2)
+            //verrifyPrint("19467c0e-1261-45a9-9238-6da478fe3fbc")
         }
 
         bcakBtn.setOnClickListener {
@@ -104,30 +108,6 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        vModel.getAllStaffs().observe(this, Observer {
-            it.forEach {
-                Log.e("staff", it.staffId)
-                Log.e("staff", it.lastName)
-                Log.e("staff", it.image)
-                Log.e("staff", it.firstName)
-                Log.e("staff", it.id)
-            }
-        })
-
-        vModel.getAllFP().observe(this, Observer {
-            it.forEach {
-                Log.e("fp userid", it.userId)
-                Log.e("fp fpid", it.fpId.toString())
-                Log.e("fp id", it.id.toString())
-            }
-        })
-
-        vModel.getAllAttendance().observe(this, Observer{
-            it.forEach {
-                Log.e("attendance", "hello "+it.staffId+" "+it.id+ " "+it.serverStatus)
-            }
-        })
-
         menuBtn.setOnClickListener {
             closeScanner()
             isUpdate = true
@@ -136,15 +116,39 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+//        doAsync {
+//            vModel.clearAttendanceDB()
+//        }
+
+        val workManager = WorkManager.getInstance(this)
+
+        val constraints = Constraints.Builder()
+            .setRequiresDeviceIdle(true)
+            .setRequiresCharging(true)
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val syncRequest =
+            PeriodicWorkRequest
+                .Builder(SyncWorker::class.java, 12, TimeUnit.HOURS )
+                .setConstraints(constraints)
+                .build()
+
+        workManager.enqueue(syncRequest)
+
+        val cleanupRequest =
+            PeriodicWorkRequest
+                .Builder(CleanupWorker::class.java, 40, TimeUnit.HOURS)
+                .setConstraints(constraints)
+                .build()
+        workManager.enqueue(cleanupRequest)
+
     }
 
     fun loadUsers(){
         val latestId = getSharedPreferences("com.agromall.clockin", 0).getInt("latestId", 0)
         vModel.getStaffs(latestId)
-        vModel.getPendingAtt()?.forEach{
-            vModel.postAttendance(it)
-            Log.e("attendance", "hello"+it.serverStatus)
-        }
+        SyncClass(this).syncdata()
     }
 
     override fun onStart() {
@@ -244,6 +248,7 @@ class MainActivity : AppCompatActivity() {
         return true
     }
 
+//
     private fun verrifyPrint(fi: FingerprintImage){
 
         doAsync {
@@ -251,8 +256,7 @@ class MainActivity : AppCompatActivity() {
                 .create()
                 .getUserId(fi)
 
-            Log.e("id", userId.toString())
-                if(userId != -1){
+            if(userId != -1){
                     val fp = vModel.getFp(userId)
 
                         if(fp != null){

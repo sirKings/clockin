@@ -31,6 +31,7 @@ val networkModule = module {
 
 }
 
+val baseUrl = "https://office.theagromall.com/api/"
 
 internal fun provideHeaderInterceptor(): Interceptor {
 
@@ -74,7 +75,7 @@ internal fun httpLoggingInterceptor(): HttpLoggingInterceptor {
 internal fun provideUserApiService(okHttpClient: OkHttpClient, gson: Gson): ApiService {
     val retrofitBuilder: Retrofit.Builder = Retrofit.Builder()
     //retrofitBuilder.baseUrl("http://private-516e2-kingsleyjohnnwankwo.apiary-mock.com/")
-    retrofitBuilder.baseUrl("https://office.theagromall.com/api/")
+    retrofitBuilder.baseUrl(baseUrl)
     retrofitBuilder.addCallAdapterFactory(RxJava2CallAdapterFactory.create())
     retrofitBuilder.client(okHttpClient)
     retrofitBuilder.addConverterFactory(GsonConverterFactory.create(gson))

@@ -9,7 +9,7 @@ import okhttp3.RequestBody
 import retrofit2.Response
 
 class RemoteDataSource(val apiService: ApiService) : DataSource {
-    override fun postAttendance(attendancePost: AttendancePost): Single<SingleResponse<AttPostRes>> {
+    override fun postAttendance(attendancePost: AttendancePostObject): Single<SingleResponse<AttPostRes>> {
         return apiService.postAttendance(attendancePost)
     }
 

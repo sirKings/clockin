@@ -31,7 +31,7 @@ interface ApiService {
     fun getStaffs(@Query("offset") offset: Int): Single<ListResponse<StaffRes>>
 
     @POST("attendance")
-    fun postAttendance(@Body att: AttendancePost): Single<SingleResponse<AttPostRes>>
+    fun postAttendance(@Body att: AttendancePostObject): Single<SingleResponse<AttPostRes>>
 
     @PUT("attendance")
     fun updateAttendance(@Body att: AttendancePost): Single<SingleResponse<AttPostRes>>

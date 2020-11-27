@@ -23,7 +23,7 @@ interface DataSource {
 
     fun getStaffs(offset: Int): Single<ListResponse<StaffRes>>
 
-    fun postAttendance(attendancePost: AttendancePost): Single<SingleResponse<AttPostRes>>
+    fun postAttendance(attendancePost: AttendancePostObject): Single<SingleResponse<AttPostRes>>
 
     fun updateAttendance(attendancePost: AttendancePost): Single<SingleResponse<AttPostRes>>
 }

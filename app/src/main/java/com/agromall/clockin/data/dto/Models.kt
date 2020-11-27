@@ -62,10 +62,12 @@ data class StaffRes(
 
 data class AttendancePost(
     var staff_id: Int,
-    var time_in: String?,
-    var attendance_id: Int?,
+    var time_in: String,
     var time_out: String?
+)
 
+data class AttendancePostObject(
+    var body: ArrayList<AttendancePost> = ArrayList()
 )
 
 data class AttPostRes(

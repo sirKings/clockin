@@ -29,11 +29,13 @@ class Repository(
 
     fun getAllAttendance() = local.getDao().getAllAttendance()
 
+    fun clearAtt() = local.getDao().clearAtt()
+
     fun saveAttendance(attendance: Attendance) = local.getDao().saveAttendance(attendance)
 
     fun getAttendance(date: Long, staffId: String) = local.getDao().getAttendance(date, staffId)
 
-    fun updateAttendance(attendance: Attendance) = local.getDao().updateAttendance(attendance)
+    fun updateAttendance(attendance: Attendance) = local.getDao().updateAttendance(attendance.date!!, attendance.staffId!!)
 
     fun getFP(id: Int) = local.getDao().getFPInfo(id)
 
@@ -50,7 +52,7 @@ class Repository(
     ) = dataSource.postStaff(image,fpl,lName,fName,email, dept, id)
 
     fun getStaffs(offset: Int) = dataSource.getStaffs(offset)
-    fun postAttendance(at: AttendancePost) = dataSource.postAttendance(at)
+    fun postAttendance(at: AttendancePostObject) = dataSource.postAttendance(at)
 
     fun updateAttendance(at: AttendancePost) = dataSource.updateAttendance(at)
 

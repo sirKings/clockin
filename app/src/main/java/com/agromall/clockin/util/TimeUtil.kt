@@ -1,5 +1,6 @@
 package com.agromall.clockin.util
 
+import android.util.Log
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -17,8 +18,28 @@ class TimeUtil {
         }catch (err: Exception){
             err.printStackTrace()
         }
-        return dateObject.time
+        val d = dateObject.time
 
+        Log.e("date", d.toString())
+
+        return d
+    }
+
+    fun getDateFromTimeString(time: String): Long{
+        val formatter = SimpleDateFormat("dd.MM.yyyy", Locale.UK)
+        val timeformat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.UK)
+        var dateObject = Date()
+        try {
+            val date = formatter.format(timeformat.parse(time))
+            dateObject = formatter.parse(date)
+        }catch (err: Exception){
+            err.printStackTrace()
+        }
+        val d = dateObject.time
+
+        Log.e("date", d.toString())
+
+        return d
     }
 
     fun getTimeinString(time: Long): String{
@@ -26,7 +47,10 @@ class TimeUtil {
         return formatter.format(time)
     }
 
-    fun getTimeForServer(time: Long): String{
+    fun getTimeForServer(time: Long?): String?{
+        if(time == null){
+            return null
+        }
         val format = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.UK)
         return format.format(time)
     }

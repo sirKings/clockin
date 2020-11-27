@@ -6,6 +6,7 @@ import com.agromall.clockin.di.repoModule
 import com.agromall.clockin.di.roomModule
 import com.agromall.clockin.di.viewModelModule
 import com.agromall.clockin.util.TimberTree
+import com.facebook.stetho.Stetho
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -23,6 +24,8 @@ class BaseApplication: Application(){
 
         if (BuildConfig.DEBUG)
             Timber.plant(TimberTree())
+
+        Stetho.initializeWithDefaults(this)
     }
 
 }
